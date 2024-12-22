@@ -1,25 +1,9 @@
 from math import sqrt
-import Labyrinth as laby
-
-def readFile(filename):
-    with open(filename) as f:
-        lines = f.readlines()
-    nbinstances = int(lines[0].strip())
-    matrices = []
-    nline = 1
-    for _ in range(nbinstances):
-        matrice = []
-        n= int(lines[nline].strip().split(' ')[0])
-        m= int(lines[nline].strip().split(' ')[1])
-        nline += 1
-        for i in range(n):
-            matrice.append(list(lines[nline].strip()))
-            nline += 1
-        matrices.append(matrice)
-    return nbinstances, matrices
             
 class Graph:
     def __init__(self, matrice):
+        self.flame = None
+        self.feuAllume = []
         self.verticesList = []
         self.adjacencyList = []
         for i in range(len(matrice)):
@@ -86,11 +70,11 @@ class Graph:
             current = previous[current]
         if distance[end_index] == float('inf'):
             print("No path found")
-            return "N"
+            return None
         else:
             print("Using Dijkstra")
             print("Number of vertices explored : ", len(path))
-            return "Y"
+            return path
     def heuristic(self, a, b):
         return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
     def Astar(self, start, end):
@@ -121,14 +105,16 @@ class Graph:
             current = previous[current]
         if distance[end_index] == float('inf'):
             print("No path found")
-            return "N"
+            return []
         else:
             print("Using A*")
             print("Number of vertices explored : ", len(path))
-            return "Y"
+            return path
 
     def feuPath(self):
         self.feuAllume = [float('inf') for _ in range(len(self.verticesList))]
+        if self.flame == None:
+            return
         self.feuAllume[self.verticesList.index(self.flame)] = 0
         queue = [self.flame]
         
@@ -140,16 +126,10 @@ class Graph:
                     self.feuAllume[neighbor] = self.feuAllume[current_index] + 1
                     queue.append(self.verticesList[neighbor])
 
-
-if __name__ == '__main__':
-    nbinstances, matrices = readFile('labyrinth.txt')
-    for matrice in matrices:
-        print(len(matrice))
-        print(len(matrice[0]))
-        print(matrice)
-        graph = Graph(matrice)
-        #path = graph.dijkstra(graph.start, graph.end)
-        path = graph.Astar(graph.start, graph.end)
-        #print(path)
-        laby.draw_labyrinth(matrice)
-        laby.draw_pathFlame(path)
+# if __name__ == '__main__':
+#     # nbinstances, matrices = readFile('labyrinth.txt')
+#     for i in range(nbinstances):
+#         print("Instance ", i+1)
+#         g = Graph(matrices[i])
+#         print("Dijkstra path : ", g.dijkstra(g.start, g.end))
+#         print("A* path : ", g.Astar(g.start, g.end))
