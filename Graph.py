@@ -28,20 +28,24 @@ class Graph:
             if y < len(matrice[0])-1 and matrice[x][y+1] != '#':
                 self.addEdge(i, self.verticesList.index((x, y+1)))
         self.feuPath()
+
     def addEdge(self, u, v):
         self.adjacencyList[u].append(v)
         self.adjacencyList[v].append(u)
+
     def addVertex(self, x):
         self.verticesList.append(x)
         self.adjacencyList.append([])
-    def minDistance(self, distance, visited):
+
+    def minScore(self, score, visited):
         min = float('inf')
         min_index = -1
         for v in range(len(self.verticesList)):
-            if distance[v] < min and not visited[v]:
-                min = distance[v]
+            if score[v] < min and not visited[v]:
+                min = score[v]
                 min_index = v
         return min_index
+    
     def dijkstra(self, start, end):
         start_index = self.verticesList.index(start)
         end_index = self.verticesList.index(end)
@@ -52,16 +56,15 @@ class Graph:
         number_of_vertices_explored = 0
 
         for _ in range(len(self.verticesList)):
-            u = self.minDistance(distance, visited)
-            if u == -1:
+            u = self.minScore(distance, visited)
+            if u == -1 or u == end_index:
                 break
             visited[u] = True
             for v in self.adjacencyList[u]:
-                if not visited[v] and distance[v] > distance[u] + 1 and (distance[u]+1)<self.feuAllume[v]:
+                if not visited[v] and distance[v] > distance[u] + 1:
                     distance[v] = distance[u] + 1
                     previous[v] = u
             number_of_vertices_explored += 1
-
 
         path = []
         current = end_index
@@ -70,32 +73,39 @@ class Graph:
             current = previous[current]
         if distance[end_index] == float('inf'):
             print("No path found")
-            return None
         else:
             print("Using Dijkstra")
-            print("Number of vertices explored : ", len(path))
-            return path
-    def heuristic(self, a, b):
-        return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
-    def Astar(self, start, end):
+            print("Number of vertices explored : ", number_of_vertices_explored)
+            print("Path length : ", len(path))
+        return path,number_of_vertices_explored
+
+    def euclidean_distance_heuristic(self, a, b): # Euclidean distance
+        return (a[0] - b[0])**2 + (a[1] - b[1])**2
+    
+    def Taxicab_distance_heuristic(self, a, b): # Taxicab distance
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+    
+    def AstarDistance(self, start, end):
         start_index = self.verticesList.index(start)
         end_index = self.verticesList.index(end)
-        distance = [float('inf')] * len(self.verticesList)
+        distance = [float('inf')] * len(self.verticesList) # gScore
         distance[start_index] = 0
+        fscore = [float('inf')] * len(self.verticesList) # fScore
+        fscore[start_index] = self.euclidean_distance_heuristic(start, end)
         visited = [False] * len(self.verticesList)
         previous = [None] * len(self.verticesList)
         number_of_vertices_explored = 0
         
-
         for _ in range(len(self.verticesList)):
-            u = self.minDistance(distance, visited)
-            if u == -1:
+            u = self.minScore(fscore, visited)
+            if u == -1 or u == end_index:
                 break
             visited[u] = True
             for v in self.adjacencyList[u]:
-                if not visited[v] and distance[v] > distance[u] + 1 + self.heuristic(self.verticesList[u], self.verticesList[v]) and (distance[u] + 1) < self.feuAllume[v]:
-                    distance[v] = distance[u] + 1
-                    previous[v] = u
+                if not visited[v] and distance[v] > distance[u] + 1:
+                    distance[v] = distance[u] + 1 # update gScore
+                    fscore[v] = distance[v] + self.euclidean_distance_heuristic(self.verticesList[v], end) # update fScore
+                    previous[v] = u # update previous
             number_of_vertices_explored += 1
 
         path = []
@@ -105,11 +115,49 @@ class Graph:
             current = previous[current]
         if distance[end_index] == float('inf'):
             print("No path found")
-            return []
         else:
-            print("Using A*")
-            print("Number of vertices explored : ", len(path))
-            return path
+            print("Using A* with distance heuristic")
+            print("Number of vertices explored : ", number_of_vertices_explored)
+            print("Path length : ", len(path))
+        return path,number_of_vertices_explored
+
+    def AstarFire(self, start, end):
+        start_index = self.verticesList.index(start)
+        end_index = self.verticesList.index(end)
+        distance = [float('inf')] * len(self.verticesList) # gScore
+        distance[start_index] = 0
+        fscore = [float('inf')] * len(self.verticesList) # fScore
+        fscore[start_index] = self.euclidean_distance_heuristic(start, end)
+        visited = [False] * len(self.verticesList)
+        previous = [None] * len(self.verticesList)
+        number_of_vertices_explored = 0
+
+        for _ in range(len(self.verticesList)):
+            u = self.minScore(fscore, visited)
+            if u == -1 or u == end_index:
+                break
+            visited[u] = True
+            for v in self.adjacencyList[u]:
+                if not visited[v] and distance[v] > distance[u] + 1 and self.feuAllume[v] >= distance[u] + 1:
+                    if self.feuAllume[v] == distance[u] + 1 and self.verticesList[v] != end:
+                        continue
+                    distance[v] = distance[u] + 1 # update gScore
+                    fscore[v] = distance[v] + self.euclidean_distance_heuristic(self.verticesList[v], end) # update fScore
+                    previous[v] = u # update previous
+            number_of_vertices_explored += 1
+
+        path = []
+        current = end_index
+        while current is not None:
+            path.insert(0, self.verticesList[current])
+            current = previous[current]
+        if distance[end_index] == float('inf'):
+            print("No path found")
+        else:
+            print("Using A* with fire detection heuristic")
+            print("Number of vertices explored : ", number_of_vertices_explored)
+            print("Path length : ", len(path))
+        return path,number_of_vertices_explored
 
     def feuPath(self):
         self.feuAllume = [float('inf') for _ in range(len(self.verticesList))]
