@@ -1,9 +1,49 @@
 from math import sqrt
-            
+# Classe Graph
 class Graph:
+    '''
+    Classe Graph
+    Cette classe est utilisée pour représenter un graphe non orienté.
+    Attributes:
+    verticesList: list
+        Une liste de tuples représentant les sommets du graphe.
+    adjacencyList: list
+        Une liste d'adjacence représentant les arêtes du graphe.
+    start: tuple
+        La position de départ.
+    end: tuple
+        La position d'arrivée.
+    flame: tuple
+        La position du feu.
+    onFire: list
+        Une liste représentant la distance de chaque sommet par rapport au feu.
+    Methods:
+    addEdge(u, v)
+        Ajoute une arête entre les sommets u et v.
+    addVertex(x)
+        Ajoute un sommet x au graphe.
+    minScore(score, visited)
+        Retourne l'indice du sommet non visité ayant le score minimum.
+    dijkstra(start, end)
+        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme de Dijkstra.
+    euclidean_distance_heuristic(a, b)
+        Retourne la distance euclidienne entre les sommets a et b.
+    Taxicab_distance_heuristic(a, b)
+        Retourne la distance de Manhattan entre les sommets a et b.
+    AstarDistance(start, end)
+        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme A* avec la distance euclidienne comme heuristique.
+    AstarFire(start, end)
+        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme A* avec la détection du feu comme heuristique.
+    traverseFirePath()
+        Parcourt le graphe pour détecter la distance de chaque sommet par rapport au feu.
+    '''
     def __init__(self, matrice):
+        '''
+        Constructeur de la classe Graph
+        :param matrice: La matrice représentant le labyrinthe
+        '''
         self.flame = None
-        self.feuAllume = []
+        self.onFire = []
         self.verticesList = []
         self.adjacencyList = []
         for i in range(len(matrice)):
@@ -16,7 +56,7 @@ class Graph:
                     self.end = (i, j)
                 if matrice[i][j] == 'F':
                     self.flame = (i, j)
-        # for each vertex, we add the edges connect to up, down, left, right vertices
+        # pour chaque sommet, nous ajoutons les arêtes connectant les sommets en haut, en bas, à gauche, à droite
         for i in range(len(self.verticesList)):
             x, y = self.verticesList[i]
             if x > 0 and matrice[x-1][y] != '#':
@@ -27,17 +67,29 @@ class Graph:
                 self.addEdge(i, self.verticesList.index((x, y-1)))
             if y < len(matrice[0])-1 and matrice[x][y+1] != '#':
                 self.addEdge(i, self.verticesList.index((x, y+1)))
-        self.feuPath()
+        self.traverseFirePath()
 
     def addEdge(self, u, v):
+        '''
+        Ajoute une arête entre les sommets u et v.
+        :param u: int'''
         self.adjacencyList[u].append(v)
         self.adjacencyList[v].append(u)
 
     def addVertex(self, x):
+        '''
+        Ajoute un sommet x au graphe.
+        :param x: tuple'''
         self.verticesList.append(x)
         self.adjacencyList.append([])
 
     def minScore(self, score, visited):
+        ''' 
+        Retourne l'indice du sommet non visité ayant le score minimum.
+        :param score: list
+        :param visited: list
+        :return: min_index: int 
+        '''
         min = float('inf')
         min_index = -1
         for v in range(len(self.verticesList)):
@@ -47,6 +99,13 @@ class Graph:
         return min_index
     
     def dijkstra(self, start, end):
+        '''
+        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme de Dijkstra.
+        :param start: tuple
+        :param end: tuple
+        :return: path: list
+        :return: number_of_vertices_explored: int
+        '''
         start_index = self.verticesList.index(start)
         end_index = self.verticesList.index(end)
         distance = [float('inf')] * len(self.verticesList)
@@ -79,13 +138,31 @@ class Graph:
             print("Path length : ", len(path))
         return path,number_of_vertices_explored
 
-    def euclidean_distance_heuristic(self, a, b): # Euclidean distance
+    def euclidean_distance_heuristic(self, a, b): 
+        '''
+        Retourne la distance euclidienne entre les sommets a et b.
+        :param a: tuple
+        :param b: tuple
+        :return: float
+        '''
         return (a[0] - b[0])**2 + (a[1] - b[1])**2
     
-    def Taxicab_distance_heuristic(self, a, b): # Taxicab distance
+    def Taxicab_distance_heuristic(self, a, b): 
+        '''
+        Retourne la distance de Manhattan entre les sommets a et b.
+        :param a: tuple
+        :param b: tuple
+        :return: int
+        '''
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
     
     def AstarDistance(self, start, end):
+        '''
+        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme A* avec la distance euclidienne comme heuristique.
+        :param start: tuple
+        :param end: tuple
+        :return: path: list
+        :return: number_of_vertices_explored: int'''
         start_index = self.verticesList.index(start)
         end_index = self.verticesList.index(end)
         distance = [float('inf')] * len(self.verticesList) # gScore
@@ -103,9 +180,9 @@ class Graph:
             visited[u] = True
             for v in self.adjacencyList[u]:
                 if not visited[v] and distance[v] > distance[u] + 1:
-                    distance[v] = distance[u] + 1 # update gScore
-                    fscore[v] = distance[v] + self.euclidean_distance_heuristic(self.verticesList[v], end) # update fScore
-                    previous[v] = u # update previous
+                    distance[v] = distance[u] + 1 # mettre à jour gScore
+                    fscore[v] = distance[v] + self.euclidean_distance_heuristic(self.verticesList[v], end) # mettre à jour fScore
+                    previous[v] = u # mettre à jour previous
             number_of_vertices_explored += 1
 
         path = []
@@ -122,6 +199,12 @@ class Graph:
         return path,number_of_vertices_explored
 
     def AstarFire(self, start, end):
+        '''
+        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme A* avec la détection du feu comme heuristique.
+        :param start: tuple
+        :param end: tuple
+        :return: path: list
+        :return: number_of_vertices_explored: int'''
         start_index = self.verticesList.index(start)
         end_index = self.verticesList.index(end)
         distance = [float('inf')] * len(self.verticesList) # gScore
@@ -138,8 +221,8 @@ class Graph:
                 break
             visited[u] = True
             for v in self.adjacencyList[u]:
-                if not visited[v] and distance[v] > distance[u] + 1 and self.feuAllume[v] >= distance[u] + 1:
-                    if self.feuAllume[v] == distance[u] + 1 and self.verticesList[v] != end:
+                if not visited[v] and distance[v] > distance[u] + 1 and self.onFire[v] >= distance[u] + 1:
+                    if self.onFire[v] == distance[u] + 1 and self.verticesList[v] != end:
                         continue
                     distance[v] = distance[u] + 1 # update gScore
                     fscore[v] = distance[v] + self.euclidean_distance_heuristic(self.verticesList[v], end) # update fScore
@@ -159,25 +242,17 @@ class Graph:
             print("Path length : ", len(path))
         return path,number_of_vertices_explored
 
-    def feuPath(self):
-        self.feuAllume = [float('inf') for _ in range(len(self.verticesList))]
+    def traverseFirePath(self):
+        self.onFire = [float('inf') for _ in range(len(self.verticesList))]
         if self.flame == None:
             return
-        self.feuAllume[self.verticesList.index(self.flame)] = 0
+        self.onFire[self.verticesList.index(self.flame)] = 0
         queue = [self.flame]
         
         while queue:
             current = queue.pop(0)
             current_index = self.verticesList.index(current)
             for neighbor in self.adjacencyList[current_index]:
-                if self.feuAllume[neighbor] == float('inf'):
-                    self.feuAllume[neighbor] = self.feuAllume[current_index] + 1
+                if self.onFire[neighbor] == float('inf'):
+                    self.onFire[neighbor] = self.onFire[current_index] + 1
                     queue.append(self.verticesList[neighbor])
-
-# if __name__ == '__main__':
-#     # nbinstances, matrices = readFile('labyrinth.txt')
-#     for i in range(nbinstances):
-#         print("Instance ", i+1)
-#         g = Graph(matrices[i])
-#         print("Dijkstra path : ", g.dijkstra(g.start, g.end))
-#         print("A* path : ", g.Astar(g.start, g.end))
