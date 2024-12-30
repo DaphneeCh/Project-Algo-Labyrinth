@@ -17,25 +17,6 @@ class Graph:
         La position du feu.
     onFire: list
         Une liste représentant la distance de chaque sommet par rapport au feu.
-    Methods:
-    addEdge(u, v)
-        Ajoute une arête entre les sommets u et v.
-    addVertex(x)
-        Ajoute un sommet x au graphe.
-    minScore(score, visited)
-        Retourne l'indice du sommet non visité ayant le score minimum.
-    dijkstra(start, end)
-        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme de Dijkstra.
-    euclidean_distance_heuristic(a, b)
-        Retourne la distance euclidienne entre les sommets a et b.
-    Taxicab_distance_heuristic(a, b)
-        Retourne la distance de Manhattan entre les sommets a et b.
-    AstarDistance(start, end)
-        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme A* avec la distance euclidienne comme heuristique.
-    AstarFire(start, end)
-        Retourne le chemin le plus court entre les sommets start et end en utilisant l'algorithme A* avec la détection du feu comme heuristique.
-    traverseFirePath()
-        Parcourt le graphe pour détecter la distance de chaque sommet par rapport au feu.
     '''
     def __init__(self, matrice):
         '''
